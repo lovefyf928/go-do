@@ -30,6 +30,11 @@ type nacos struct {
 	GrpcPort       uint64         `yaml:"grpcPort"`
 	ClientConfig   clientConfig   `yaml:"clientConfig"`
 	InstanceConfig instanceConfig `yaml:"instanceConfig"`
+	ConfigCenter   configCenter   `yaml:"configCenter"`
+}
+
+type configCenter struct {
+	DataId string `yaml:"dataId"`
 }
 
 type clientConfig struct {

@@ -4,13 +4,27 @@ import (
 	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"go-do/common/conf"
 	"go-do/common/utils"
+	"go-do/nacos/pool"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v2"
+	"net/rpc"
 	"os"
 	"strconv"
+	"time"
+)
+
+var (
+	RpcPool *pool.Pool
+
+	GrpcPool *pool.Pool
+
+	nacosClient naming_client.INamingClient
 )
 
 func LoadNacos() {
@@ -128,6 +142,10 @@ func LoadNacos() {
 		panic(err)
 	}
 
+	RpcPool = pool.NewRpcPool(getRpcInstance, 300, time.Hour*60)
+
+	GrpcPool = pool.NewGrpcPool(getInstance, 300, time.Hour*60)
+
 	//time.Sleep(20 * time.Second)
 	//
 	//client.DeregisterInstance(vo.DeregisterInstanceParam{
@@ -140,9 +158,66 @@ func LoadNacos() {
 	//})
 }
 
+func GetHttpLbHost(serverName string) (string, error) {
+	instance, err := nacosClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+		ServiceName: serverName,
+		GroupName:   "DEFAULT_GROUP",
+		Clusters:    []string{"DEFAULT"},
+	})
+	//update(serverName)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%d", instance.Ip, instance.Port), nil
+}
+
+func getInstance(serverName string) (conn *grpc.ClientConn, err error) {
+
+	instance, err := nacosClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+		ServiceName: string(serverName),
+		GroupName:   "DEFAULT_GROUP",
+		Clusters:    []string{"DEFAULT"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	//_ = fmt.Sprintf("获取到的实例IP:%s;端口:%d", instance., instance.Port)
+	conn, err = grpc.Dial(fmt.Sprintf("%s:%d", instance.Ip, instance.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func getRpcInstance(serverName string) (conn *rpc.Client, err error) {
+
+	instance, err := nacosClient.SelectOneHealthyInstance(vo.SelectOneHealthInstanceParam{
+		ServiceName: string(serverName),
+		GroupName:   "DEFAULT_GROUP",
+		Clusters:    []string{"DEFAULT"},
+	})
+	if err != nil {
+		return
+	}
+
+	//_ = fmt.Sprintf("获取到的实例IP:%s;端口:%d", instance., instance.Port)
+	//conn, err = grpc.Dial(fmt.Sprintf("%s:%d", instance.Ip, instance.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	conn, err = rpc.DialHTTP("tcp", fmt.Sprintf("%s:%d", instance.Ip, instance.Port))
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func loadConfig(configClient config_client.IConfigClient) {
 	content, err := configClient.GetConfig(vo.ConfigParam{
-		DataId: "config_dev",
+		DataId: conf.ConfigInfo.Nacos.ConfigCenter.DataId,
 		Group:  "DEFAULT_GROUP",
 	})
 	if err != nil {
