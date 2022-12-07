@@ -40,8 +40,8 @@ server.StartGateway("config path", func(chain *chain.Chain) {
 	})
 ```
 
-JwtFilter
-···
+JwtFilter.go
+```
 func JwtFilter(c *chain.Chain) {
 	token := c.Token
 	if token == "" {
