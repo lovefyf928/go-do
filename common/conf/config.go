@@ -63,6 +63,7 @@ type clientConfig struct {
 	ListenInterval      uint64 `yaml:"listenInterval"`
 	NotLoadCacheAtStart bool   `yaml:"notLoadCacheAtStart"`
 	LogDir              string `yaml:"logDir"`
+	NamespaceId         string `yaml:"namespaceId"`
 }
 
 type instanceConfig struct {

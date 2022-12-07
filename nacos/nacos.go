@@ -41,7 +41,7 @@ func LoadNacos() {
 		NotLoadCacheAtStart: conf.ConfigInfo.Nacos.ClientConfig.NotLoadCacheAtStart,
 		LogDir:              conf.ConfigInfo.Nacos.ClientConfig.LogDir,
 		BeatInterval:        1000,
-		NamespaceId:         "4c22a800-178e-43ea-8bd1-7372e63c5b55",
+		NamespaceId:         conf.ConfigInfo.Nacos.ClientConfig.NamespaceId,
 	}
 
 	serverConfigs := []constant.ServerConfig{
