@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -46,10 +45,10 @@ func StringsContains(array []string, val string) (index int) {
 
 func GetNowServerRootPath() string {
 	fPath, _ := os.Getwd()
+	//
+	//configPath := flag.String("c", fPath, "root path")
+	//
+	//flag.Parse()
 
-	configPath := flag.String("c", fPath, "root path")
-
-	flag.Parse()
-
-	return *configPath
+	return fPath
 }

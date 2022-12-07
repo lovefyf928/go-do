@@ -31,6 +31,11 @@ func NewRegister(engine *gin.Engine, httpPrefix string, grpcServer *grpc.Server,
 	}
 }
 
+func (r *Register) RegisterController(prefix string) {
+	router := *r.router
+	router.AddGroup(prefix)
+}
+
 func (r *Register) RegisterHttpHandle(path string, method enum.HttpMethod, handle func(ctx context.Context, req interface{}) (interface{}, error), params interface{}) {
 	router := *r.router
 	router.AddRouter(method, path, transport.ToTransport(handle, params))

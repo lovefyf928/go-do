@@ -8,6 +8,27 @@ type config struct {
 	Nacos nacos `yaml:"nacos"`
 
 	Wx wx `yaml:"wx"`
+
+	Jwt jwt `yaml:"jwt"`
+
+	GateWay gateway `yaml:"gateway"`
+}
+
+type gateway struct {
+	Routers []routers `yaml:"routers"`
+}
+
+type routers struct {
+	ServerName string `yaml:"serverName"`
+
+	Path string `yaml:"path"`
+
+	Filter []string `yaml:"filter"`
+}
+
+type jwt struct {
+	TokenHeaderName string `yaml:"tokenHeaderName"`
+	SecretKey       string `yaml:"secretKey"`
 }
 
 type wx struct {
@@ -52,6 +73,7 @@ type instanceConfig struct {
 }
 
 type server struct {
+	GatewayPort       string `yaml:"gatewayPort"`
 	Port              string `yaml:"port"`
 	GrpcPort          string `yaml:"grpcPort"`
 	Name              string `yaml:"name"`

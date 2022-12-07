@@ -28,6 +28,13 @@ var (
 )
 
 func LoadNacos() {
+
+	ip, err := utils.GetSubnetIp()
+
+	if err != nil {
+		panic(err)
+	}
+
 	clientConfig := constant.ClientConfig{
 		TimeoutMs:           conf.ConfigInfo.Nacos.ClientConfig.TimeoutMs,
 		ListenInterval:      conf.ConfigInfo.Nacos.ClientConfig.ListenInterval,
@@ -69,82 +76,113 @@ func LoadNacos() {
 
 	loadConfig(configClient)
 
-	port, err := strconv.Atoi(conf.ConfigInfo.Server.Port)
+	if conf.ConfigInfo.Server.GrpcPort != "" {
+		grpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.GrpcPort)
+		if err != nil {
+			panic(err)
+		}
+		// grpc 服务注册到nacos
+		success, err := client.RegisterInstance(vo.RegisterInstanceParam{
+			Ip: ip,
+			//Ip:          "127.0.0.1",
+			Port:        uint64(grpcPort),
+			ServiceName: conf.ConfigInfo.Server.GrpcName,
+			Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
+			//ClusterName: conf.ConfigInfo.Server.Name,
+			Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
+			Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
+			Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
+			Metadata:  map[string]string{"source": "go"},
+		})
 
-	if err != nil {
-		panic(err)
+		if !success {
+			panic(err)
+		}
+
 	}
 
-	grpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.GrpcPort)
-	rpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.RpcPort)
+	if conf.ConfigInfo.Server.RpcPort != "" {
+		rpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.RpcPort)
+		if err != nil {
+			panic(err)
+		}
 
-	if err != nil {
-		panic(err)
+		// rpc 服务注册到nacos
+		success, err := client.RegisterInstance(vo.RegisterInstanceParam{
+			Ip: ip,
+			//Ip:          "127.0.0.1",
+			Port:        uint64(rpcPort),
+			ServiceName: conf.ConfigInfo.Server.RpcName,
+			Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
+			//ClusterName: conf.ConfigInfo.Server.Name,
+			Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
+			Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
+			Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
+			Metadata:  map[string]string{"source": "go"},
+		})
+
+		if !success {
+			panic(err)
+		}
+
 	}
 
-	ip, err := utils.GetSubnetIp()
+	//grpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.GrpcPort)
+	//rpcPort, err := strconv.Atoi(conf.ConfigInfo.Server.RpcPort)
 
-	if err != nil {
-		panic(err)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	if conf.ConfigInfo.Server.Port != "" {
+		port, err := strconv.Atoi(conf.ConfigInfo.Server.Port)
+
+		if err != nil {
+			panic(err)
+		}
+
+		// http 服务注册到nacos
+		success, err := client.RegisterInstance(vo.RegisterInstanceParam{
+			Ip: ip,
+			//Ip:          "127.0.0.1",
+			Port:        uint64(port),
+			ServiceName: conf.ConfigInfo.Server.Name,
+			Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
+			//ClusterName: conf.ConfigInfo.Server.Name,
+			Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
+			Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
+			Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
+			Metadata:  map[string]string{"source": "go"},
+		})
+
+		if !success {
+			panic(err)
+		}
 	}
 
-	// http 服务注册到nacos
-	success, err := client.RegisterInstance(vo.RegisterInstanceParam{
-		Ip: ip,
-		//Ip:          "127.0.0.1",
-		Port:        uint64(port),
-		ServiceName: conf.ConfigInfo.Server.Name,
-		Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
-		//ClusterName: conf.ConfigInfo.Server.Name,
-		Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
-		Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
-		Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
-		Metadata:  map[string]string{"source": "go"},
-	})
-
-	if !success {
-		panic(err)
-	}
-
-	// grpc 服务注册到nacos
-	success, err = client.RegisterInstance(vo.RegisterInstanceParam{
-		Ip: ip,
-		//Ip:          "127.0.0.1",
-		Port:        uint64(grpcPort),
-		ServiceName: conf.ConfigInfo.Server.GrpcName,
-		Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
-		//ClusterName: conf.ConfigInfo.Server.Name,
-		Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
-		Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
-		Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
-		Metadata:  map[string]string{"source": "go"},
-	})
-
-	if !success {
-		panic(err)
-	}
-
-	// rpc 服务注册到nacos
-	success, err = client.RegisterInstance(vo.RegisterInstanceParam{
-		Ip: ip,
-		//Ip:          "127.0.0.1",
-		Port:        uint64(rpcPort),
-		ServiceName: conf.ConfigInfo.Server.RpcName,
-		Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
-		//ClusterName: conf.ConfigInfo.Server.Name,
-		Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
-		Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
-		Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
-		Metadata:  map[string]string{"source": "go"},
-	})
-
-	if !success {
-		panic(err)
-	}
+	//// rpc 服务注册到nacos
+	//success, err = client.RegisterInstance(vo.RegisterInstanceParam{
+	//	Ip: ip,
+	//	//Ip:          "127.0.0.1",
+	//	Port:        uint64(rpcPort),
+	//	ServiceName: conf.ConfigInfo.Server.RpcName,
+	//	Weight:      conf.ConfigInfo.Nacos.InstanceConfig.Weight,
+	//	//ClusterName: conf.ConfigInfo.Server.Name,
+	//	Enable:    conf.ConfigInfo.Nacos.InstanceConfig.Enable,
+	//	Healthy:   conf.ConfigInfo.Nacos.InstanceConfig.Healthy,
+	//	Ephemeral: conf.ConfigInfo.Nacos.InstanceConfig.Ephemeral,
+	//	Metadata:  map[string]string{"source": "go"},
+	//})
+	//
+	//if !success {
+	//	panic(err)
+	//}
 
 	RpcPool = pool.NewRpcPool(getRpcInstance, 300, time.Hour*60)
 
 	GrpcPool = pool.NewGrpcPool(getInstance, 300, time.Hour*60)
+
+	nacosClient = client
 
 	//time.Sleep(20 * time.Second)
 	//

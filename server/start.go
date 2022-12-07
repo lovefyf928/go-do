@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"go-do/common/authorization"
 	"go-do/common/conf"
 	"go-do/nacos"
 	"go-do/register"
@@ -20,6 +21,8 @@ func Start(configPath string, serverPrefix string, registrar func(r *register.Re
 	err := conf.LoadConfigInformation(configPath)
 
 	nacos.LoadNacos()
+
+	authorization.LoadJwtConfig()
 
 	if err != nil {
 		panic(err)
